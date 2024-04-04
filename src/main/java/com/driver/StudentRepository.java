@@ -6,53 +6,70 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public class StudentRepository {
+    HashMap<String,Student> studentDb=new HashMap<>();
+    HashMap<String,Teacher> teacherDb=new HashMap<>();
+    HashMap<Teacher, List<Student>> teacherStudentPairDb=new HashMap<>();
 
-    private HashMap<String, Student> studentMap;
-    private HashMap<String, Teacher> teacherMap;
-    private HashMap<String, List<String>> teacherStudentMapping;
-
-    public StudentRepository(){
-        this.studentMap = new HashMap<String, Student>();
-        this.teacherMap = new HashMap<String, Teacher>();
-        this.teacherStudentMapping = new HashMap<String, List<String>>();
+    public void addStudent(Student student) {
+        studentDb.put(student.getName(),student);
     }
 
-    public void saveStudent(Student student){
-        // your code goes here
+    public void addTeacher(Teacher teacher) {
+        teacherDb.put(teacher.getName(),teacher);
     }
 
-    public void saveTeacher(Teacher teacher){
-        // your code goes here
-    }
 
-    public void saveStudentTeacherPair(String student, String teacher){
-        if(studentMap.containsKey(student) && teacherMap.containsKey(teacher)){
-            // your code goes here
+    public void addStudentTeacherPair(String student, String teacher) {
+        Teacher teacher1=getTeacherByName(teacher);
+        teacher1.setNumberOfStudents(teacher1.getNumberOfStudents()+1);
+
+        Student student1=getStudentByName(student);
+
+        if(!teacherStudentPairDb.containsKey(teacher1)){
+            teacherStudentPairDb.put(teacher1,new ArrayList<>());
         }
+        teacherStudentPairDb.get(teacher1).add(student1);
     }
 
-    public Student findStudent(String student){
-        // your code goes here
+    public Student getStudentByName(String name) {
+        Student student=studentDb.getOrDefault(name,null);
+        return student==null?new Student():student;
     }
 
-    public Teacher findTeacher(String teacher){
-        // your code goes here
+    public Teacher getTeacherByName(String name) {
+        Teacher teacher=teacherDb.getOrDefault(name,null);
+        return teacher==null?new Teacher():teacher;
     }
 
-    public List<String> findStudentsFromTeacher(String teacher){
-        // your code goes here
-        // find student list corresponding to a teacher
+    public List<String> getStudentsByTeacherName(String teacher) {
+        List<String> students=new ArrayList<>();
+        Teacher teacher1=getTeacherByName(teacher);
+
+        List<Student> list =teacherStudentPairDb.getOrDefault(teacher1,new ArrayList<>());
+        for(Student student:list){
+            students.add(student.getName());
+        }
+        return students;
     }
 
-    public List<String> findAllStudents(){
-        // your code goes here
+    public List<String> getAllStudents() {
+        return new ArrayList<>(studentDb.keySet());
     }
 
-    public void deleteTeacher(String teacher){
-        // your code goes here
+    public void deleteTeacherByName(String teacher) {
+        Teacher teacher1=getTeacherByName(teacher);
+        List<Student> students=teacherStudentPairDb.getOrDefault(teacher1,new ArrayList<>());
+        for(Student student:students){
+            studentDb.remove(student.getName());
+        }
+        teacherDb.remove(teacher);
+        teacherStudentPairDb.remove(teacher1);
     }
 
-    public void deleteAllTeachers(){
-        // your code goes here
+    public void deleteAllTeachers() {
+        for(String teacher:teacherDb.keySet()){
+            deleteTeacherByName(teacher);
+        }
+        teacherStudentPairDb.clear();
     }
 }
